@@ -79,13 +79,13 @@ func main() {
         }
 
         archive := falib.NewArchiver(outputFile)
-        archive.BlockSize = uint16(4096)
-		archive.DirScanQueueSize = 128
-		archive.FileReadQueueSize = 128
-		archive.BlockQueueSize = 128
+        archive.BlockSize = uint16(8192)
+		archive.DirScanQueueSize = 256
+		archive.FileReadQueueSize = 256
+		archive.BlockQueueSize = 256
 		archive.ExcludePatterns = filepath.SplitList("")
-		archive.DirReaderCount = 16
-		archive.FileReaderCount = 16
+		archive.DirReaderCount = 32
+		archive.FileReaderCount = 32
 		archive.Logger = &MultiLevelLogger{syslog.New(os.Stderr, "", 0), false}
 
         for pth := range parseIncludeList(strings.Split(configs.Paths, "\n")) {
