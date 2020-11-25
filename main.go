@@ -89,7 +89,7 @@ func main() {
 		archive.ExcludePatterns = filepath.SplitList(configs.IgnoredPaths)
 		archive.DirReaderCount = 16
 		archive.FileReaderCount = 16
-		archive.Logger = &MultiLevelLogger{syslog.New(os.Stderr, "", 0), true}
+		archive.Logger = &MultiLevelLogger{syslog.New(os.Stderr, "", 0), false}
 
         for pth := range parseIncludeList(strings.Split(configs.Paths, "\n")) {
         	archive.AddDir(pth)
