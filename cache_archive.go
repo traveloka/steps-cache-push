@@ -26,13 +26,13 @@ type Archive struct {
 }
 
 // NewArchive creates a instance of Archive.
-func NewArchive(pth, compressor string) (*Archive, error) {
+func NewArchive(pth, compressionAlgorithm string) (*Archive, error) {
 	var file *os.File
 	var tarWriter *tar.Writer
 	var cw *CompressionWriter
 	var err error
-	if compressor != "false" {
-		cw, file, err = NewCompressionWriter(pth, compressor, 0)
+	if compressionAlgorithm != "none" {
+		cw, file, err = NewCompressionWriter(pth, compressionAlgorithm, 0)
 		if err != nil {
 			return nil, err
 		}

@@ -171,13 +171,13 @@ inputs:
         - "false"
   - compression_algorithm: "false"
     opts:
-      title: "Compress cache?"
-      summary: "If Compress cache is set, then it will upload a compressed archive using certain compression algorithm."
+      title: "Compression Algorithm"
+      summary: "If compression algorithm is set, then it will upload a compressed archive using certain compression algorithm."
       description: |-
-        If Compress cache is set, then it will upload a compressed archive using certain compression algorithm.
+        If compression algorithm is set, then it will upload a compressed archive using certain compression algorithm.
       is_required: true
       value_options:
-      - "false"
+      - "none"
       - "lz4"
       - "gzip"
   - bitrise_cache_include_paths: $BITRISE_CACHE_INCLUDE_PATHS

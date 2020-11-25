@@ -108,8 +108,8 @@ func main() {
 
 		log.Infof("Done Generating Archive in %s\n", time.Since(fastArchiveStartTime))
 
-		if configs.CompressArchive != "false" {
-			compressedSize, err := FastArchiveCompress(cacheArchivePath, "lz4")//configs.CompressArchive)
+		if configs.CompressArchive != "none" {
+			compressedSize, err := FastArchiveCompress(cacheArchivePath, configs.CompressArchive)
 			if err != nil {
 				logErrorfAndExit("Error when compressing file: ", err.Error())
 			}
