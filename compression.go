@@ -61,7 +61,7 @@ func FastArchiveCompress(cacheArchivePath, compressor string) (int64, error) {
 
 func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) (*CompressionWriter, *os.File, error) {
 	if compressor == "lz4" {
-		compressedOutputFile := createOutputFile(cacheArchivePath, lz4.Extension)
+		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
 		lz4Writer := lz4.NewWriter(compressedOutputFile)
 		lz4Writer.Header = lz4.Header{
 			BlockChecksum		: true,
@@ -75,7 +75,7 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 			closer: lz4Writer,
 		}, compressedOutputFile, nil
 	} else if compressor == "gzip" {
-		compressedOutputFile := createOutputFile(cacheArchivePath, ".gz")
+		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
 		gzipWriter, err := gzip.NewWriterLevel(compressedOutputFile, gzip.BestCompression)
 		if err != nil {
 			return nil, compressedOutputFile, err
@@ -93,11 +93,10 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 	return nil, nil, nil
 }
 
-func createOutputFile(cacheArchivePath, extension string) (*os.File) {
-	compressedFilePath := cacheArchivePath + extension
-	compressedOutputFile, err := os.Create(compressedFilePath)
+func createCompressedOutputFile(path string) (*os.File) {
+	compressedOutputFile, err := os.Create(path)
 
-	log.Infof("Compressing file into: ", compressedFilePath)
+	log.Infof("Compressing file into: ", path)
 
 	if err != nil {
 		log.Errorf("Error when creating new compressed file", err.Error())
@@ -107,4 +106,14 @@ func createOutputFile(cacheArchivePath, extension string) (*os.File) {
 	}
 
 	return compressedOutputFile
+}
+
+func ExtendPathWithCompression(path, compressionAlgorithm string) (string) {
+	if compressionAlgorithm == "lz4" {
+		return path + lz4.Extension
+	} else if compressionAlgorithm == "gzip" {
+		return path + ".gz"
+	}
+
+	return path
 }
