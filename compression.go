@@ -9,6 +9,7 @@ import (
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/pierrec/lz4/v4"
+	"github.com/DataDog/zstd"
 )
 
 
@@ -86,6 +87,17 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 			writer: gzipWriter,
 			closer: gzipWriter,
 		}, compressedOutputFile, nil
+	} else if compressor == "zstd" {
+		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
+		zstdWriter, err := gzip.NewWriterLevel(compressedOutputFile, gzip.BestCompression)
+		if err != nil {
+			return nil, compressedOutputFile, err
+		}
+
+		return  &CompressionWriter{
+			writer: gzipWriter,
+			closer: gzipWriter,
+		}, compressedOutputFile, nil
 	}
 	
 	log.Errorf("Unsupported compressor algorithm in fast-archiver for: ", compressor)
@@ -114,6 +126,8 @@ func ExtendPathWithCompression(path, compressionAlgorithm string) (string) {
 		return path + ".lz4"
 	} else if compressionAlgorithm == "gzip" {
 		return path + ".gz"
+	} else if compressionAlgorithm == "zstd" {
+		return path + ".zst"
 	}
 
 	return path

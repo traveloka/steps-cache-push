@@ -1,3 +1,6 @@
+# github.com/DataDog/zstd v1.4.5
+## explicit
+github.com/DataDog/zstd
 # github.com/bitrise-io/go-steputils v0.0.0-20200722085210-6d5afa53c7b8
 ## explicit
 github.com/bitrise-io/go-steputils/stepconf
