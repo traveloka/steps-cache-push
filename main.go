@@ -113,7 +113,7 @@ func main() {
 			if err != nil {
 				logErrorfAndExit("Error when compressing file: ", err.Error())
 			}
-			log.Infof("Archive compressed by %s%", (100 - (compressedSize / fastArchiveSize * 100)))
+			log.Infof("Archive compressed by %f%", (100 - (compressedSize / fastArchiveSize * 100)))
 		}
 
         log.Donef("Total done in %s\n", time.Since(startTime))
