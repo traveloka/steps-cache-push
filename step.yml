@@ -180,6 +180,7 @@ inputs:
       - "none"
       - "lz4"
       - "gzip"
+      - "zstd"
   - bitrise_cache_include_paths: $BITRISE_CACHE_INCLUDE_PATHS
     opts:
       title: "Cache paths collected by steps"
