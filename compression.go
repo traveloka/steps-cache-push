@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/pierrec/lz4"
+	"github.com/pierrec/lz4/v4"
 )
 
 
@@ -63,12 +63,13 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 	if compressor == "lz4" {
 		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
 		lz4Writer := lz4.NewWriter(compressedOutputFile)
-		lz4Writer.Header = lz4.Header{
-			BlockChecksum		: true,
-			BlockMaxSize		: 256 << 10,
-			CompressionLevel	: 5,
+		options := []lz4.Option{
+			lz4.CompressionLevelOption(lz4.Level5),
+			lz4.ConcurrencyOption(concurrency),
 		}
-		lz4Writer.WithConcurrency(concurrency)
+		if err := lz4Writer.Apply(options...); err != nil {
+			return nil, compressedOutputFile, err
+		}
 
 		return &CompressionWriter{
 			writer: lz4Writer,
@@ -110,7 +111,7 @@ func createCompressedOutputFile(path string) (*os.File) {
 
 func ExtendPathWithCompression(path, compressionAlgorithm string) (string) {
 	if compressionAlgorithm == "lz4" {
-		return path + lz4.Extension
+		return path + ".lz4"
 	} else if compressionAlgorithm == "gzip" {
 		return path + ".gz"
 	}
