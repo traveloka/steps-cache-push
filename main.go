@@ -66,7 +66,10 @@ func main() {
 	    // Use Fast Archiver
 
         log.Infof("Using fast archive... Generating archive")
-        cacheArchivePath = "/tmp/cache-archive.fast-archive"
+		cacheArchivePath = "/tmp/cache-archive.fast-archive"
+		fastArchiveStartTime := time.Now()
+
+		var fastArchiveSize int64
         var outputFile *os.File
         if cacheArchivePath != "" {
         	file, err := os.Create(cacheArchivePath)
@@ -76,46 +79,63 @@ func main() {
         	outputFile = file
         } else {
         	outputFile = os.Stdout
-        }
+		}
 
         archive := falib.NewArchiver(outputFile)
         archive.BlockSize = uint16(4096)
 		archive.DirScanQueueSize = 128
 		archive.FileReadQueueSize = 128
 		archive.BlockQueueSize = 128
-		archive.ExcludePatterns = filepath.SplitList("")
+		archive.ExcludePatterns = filepath.SplitList(configs.IgnoredPaths)
 		archive.DirReaderCount = 16
 		archive.FileReaderCount = 16
 		archive.Logger = &MultiLevelLogger{syslog.New(os.Stderr, "", 0), false}
 
         for pth := range parseIncludeList(strings.Split(configs.Paths, "\n")) {
         	archive.AddDir(pth)
-        }
+		}
         err := archive.Run()
         if err != nil {
-        	logErrorfAndExit("Fatal error in fast archiver:", err.Error())
-        }
-        outputFile.Close()
+        	logErrorfAndExit("Fatal error in fast archiver: ", err.Error())
+		}
 
-        log.Donef("Done in %s\n", time.Since(startTime))
+		fileInfo, err := outputFile.Stat()
+		if err == nil {
+			fastArchiveSize = fileInfo.Size()
+		}
+
+		outputFile.Close()
+
+		log.Infof("Done Generating Archive in %s\n", time.Since(fastArchiveStartTime))
+
+		if configs.CompressArchive != "none" {
+			compressedSize, err := FastArchiveCompress(cacheArchivePath, configs.CompressArchive)
+			if err != nil {
+				logErrorfAndExit("Error when compressing file: ", err.Error())
+			}
+			compressRatio := 100.0 - (float64(compressedSize) / float64(fastArchiveSize)) * 100.0
+			log.Infof("Archive compressed by %.2f%%", compressRatio)
+		}
+
+        log.Donef("Total done in %s\n", time.Since(startTime))
 	} else {
 	    // Use Tar Archiver
 
         // Cleaning paths
     	log.Infof("Cleaning paths")
 
-    	pathToIndicatorPath := parseIncludeList(strings.Split(configs.Paths, "\n"))
+		pathToIndicatorPath := parseIncludeList(strings.Split(configs.Paths, "\n"))
     	if len(pathToIndicatorPath) == 0 {
     		log.Warnf("No path to cache, skip caching...")
     		os.Exit(0)
     	}
 
-    	pathToIndicatorPath, err = normalizeIndicatorByPath(pathToIndicatorPath)
+    	pathToIndicatorPath, err := normalizeIndicatorByPath(pathToIndicatorPath)
     	if err != nil {
     		logErrorfAndExit("Failed to parse include list: %s", err)
     	}
 
-    	excludeByPattern := parseIgnoreList(strings.Split(configs.IgnoredPaths, "\n"))
+		excludeByPattern := parseIgnoreList(strings.Split(configs.IgnoredPaths, "\n"))
     	excludeByPattern, err = normalizeExcludeByPattern(excludeByPattern)
     	if err != nil {
     		logErrorfAndExit("Failed to parse ignore list: %s", err)
@@ -146,12 +166,12 @@ func main() {
     		log.Printf("No previous cache info found")
     	}
 
-    	curDescriptor, err := cacheDescriptor(pathToIndicatorPath, ChangeIndicator(configs.FingerprintMethodID))
+		curDescriptor, err := cacheDescriptor(pathToIndicatorPath, ChangeIndicator(configs.FingerprintMethodID))
     	if err != nil {
     		logErrorfAndExit("Failed to create current cache descriptor: %s", err)
     	}
 
-    	log.Donef("Done in %s\n", time.Since(startTime))
+    	log.Donef("Check previous cache done in %s\n", time.Since(startTime))
 
     	// Checking file changes
     	if prevDescriptor != nil {
@@ -193,14 +213,14 @@ func main() {
     	startTime = time.Now()
 
     	log.Infof("Generating cache archive")
-        cacheArchivePath = "/tmp/cache-archive.tar"
+		cacheArchivePath = "/tmp/cache-archive.tar"
 
-        archive, err := NewArchive(cacheArchivePath, configs.CompressArchive == "true")
+		archive, err := NewArchive(cacheArchivePath, configs.CompressArchive)
         if err != nil {
             logErrorfAndExit("Failed to create archive: %s", err)
         }
 
-        stackData, err := stackVersionData(configs.StackID)
+		stackData, err := stackVersionData(configs.StackID)
         if err != nil {
             logErrorfAndExit("Failed to get stack version info: %s", err)
         }
@@ -221,7 +241,7 @@ func main() {
             logErrorfAndExit("Failed to close archive: %s", err)
         }
 
-        log.Donef("Done in %s\n", time.Since(startTime))
+        log.Donef("Generating Archive (plus compress if any) Done in %s\n", time.Since(startTime))
 	}
 
 	// Upload cache archive
@@ -229,9 +249,9 @@ func main() {
 
 	log.Infof("Uploading cache archive")
 
-	if err := uploadArchive(cacheArchivePath, configs.CacheAPIURL); err != nil {
+	if err := uploadArchive(ExtendPathWithCompression(cacheArchivePath, configs.CompressArchive), configs.CacheAPIURL); err != nil {
 		logErrorfAndExit("Failed to upload archive: %s", err)
 	}
 	log.Donef("Done in %s\n", time.Since(startTime))
-	log.Donef("Total time: %s", time.Since(stepStartedAt))
+	log.Donef("Total step time: %s", time.Since(stepStartedAt))
 }

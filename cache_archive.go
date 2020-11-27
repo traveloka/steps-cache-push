@@ -4,7 +4,6 @@ package main
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,32 +22,34 @@ import (
 type Archive struct {
 	file  *os.File
 	tar   *tar.Writer
-	gzip  *gzip.Writer
+	cw	  *CompressionWriter
 }
 
 // NewArchive creates a instance of Archive.
-func NewArchive(pth string, compress bool) (*Archive, error) {
-	file, err := os.Create(pth)
-	if err != nil {
-		return nil, err
-	}
-
+func NewArchive(pth, compressionAlgorithm string) (*Archive, error) {
+	var file *os.File
 	var tarWriter *tar.Writer
-	var gzipWriter *gzip.Writer
-	if compress {
-		gzipWriter, err = gzip.NewWriterLevel(file, gzip.BestCompression)
+	var cw *CompressionWriter
+	var err error
+	if compressionAlgorithm != "none" {
+		cw, file, err = NewCompressionWriter(pth, compressionAlgorithm, 0)
 		if err != nil {
 			return nil, err
 		}
 
-		tarWriter = tar.NewWriter(gzipWriter)
+		tarWriter = tar.NewWriter(cw.writer)
 	} else {
+		file, err = os.Create(pth)
+		if err != nil {
+			return nil, err
+		}
+
 		tarWriter = tar.NewWriter(file)
 	}
 	return &Archive{
 		file: file,
 		tar:  tarWriter,
-		gzip: gzipWriter,
+		cw: cw,
 	}, nil
 }
 
@@ -150,8 +151,8 @@ func (a *Archive) Close() error {
 		return err
 	}
 
-	if a.gzip != nil {
-		if err := a.gzip.Close(); err != nil {
+	if a.cw != nil {
+		if err := a.cw.closer.Close(); err != nil {
 			return err
 		}
 	}
