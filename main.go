@@ -253,5 +253,5 @@ func main() {
 		logErrorfAndExit("Failed to upload archive: %s", err)
 	}
 	log.Donef("Done in %s\n", time.Since(startTime))
-	log.Donef("Total Archive + Upload time: %s", time.Since(stepStartedAt))
+	log.Donef("Total step time: %s", time.Since(stepStartedAt))
 }
