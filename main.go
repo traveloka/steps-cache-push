@@ -49,9 +49,20 @@ func logErrorfAndExit(format string, args ...interface{}) {
 func main() {
 	stepStartedAt := time.Now()
 
-	configs, err := ParseConfig()
-	if err != nil {
-		logErrorfAndExit(err.Error())
+	// configs, err := ParseConfig()
+	// if err != nil {
+	// 	logErrorfAndExit(err.Error())
+	// }
+
+	configs := &Config {
+		Paths: "igoat",
+		IgnoredPaths: "",
+		CacheAPIURL: "",
+		FingerprintMethodID: "file-mod-time",
+		UseFastArchiver: "true",
+		CompressArchive: "lz4",
+		DebugMode: true,
+		StackID: "asdb",
 	}
 
 	configs.Print()
@@ -113,7 +124,8 @@ func main() {
 			if err != nil {
 				logErrorfAndExit("Error when compressing file: ", err.Error())
 			}
-			log.Infof("Archive compressed by %f%", (100 - (compressedSize / fastArchiveSize * 100)))
+			compressRatio := 100.0 - (float64(compressedSize) / float64(fastArchiveSize)) * 100.0
+			log.Infof("Archive compressed by %.2f%%", compressRatio)
 		}
 
         log.Donef("Total done in %s\n", time.Since(startTime))
