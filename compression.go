@@ -9,7 +9,7 @@ import (
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/pierrec/lz4/v4"
-	"github.com/DataDog/zstd"
+	"github.com/klauspost/compress/zstd"
 )
 
 
@@ -89,7 +89,11 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 		}, compressedOutputFile, nil
 	} else if compressor == "zstd" {
 		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
-		zstdWriter := zstd.NewWriterLevel(compressedOutputFile, zstd.BestSpeed)
+		zstdWriter, err := zstd.NewWriter(compressedOutputFile)
+		if err != nil {
+			return nil, compressedOutputFile, err
+		}
+		
 		return  &CompressionWriter{
 			writer: zstdWriter,
 			closer: zstdWriter,
