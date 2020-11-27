@@ -10,6 +10,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/pierrec/lz4/v4"
 	"github.com/klauspost/compress/zstd"
+	"github.com/klauspost/pgzip"
 )
 
 
@@ -93,10 +94,18 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 		if err != nil {
 			return nil, compressedOutputFile, err
 		}
-		
+
 		return  &CompressionWriter{
 			writer: zstdWriter,
 			closer: zstdWriter,
+		}, compressedOutputFile, nil
+	} else if compressor == "pgzip" {
+		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
+		pgzipWriter := pgzip.NewWriter(compressedOutputFile)
+		
+		return  &CompressionWriter{
+			writer: pgzipWriter,
+			closer: pgzipWriter,
 		}, compressedOutputFile, nil
 	}
 	
@@ -124,7 +133,7 @@ func createCompressedOutputFile(path string) (*os.File) {
 func ExtendPathWithCompression(path, compressionAlgorithm string) (string) {
 	if compressionAlgorithm == "lz4" {
 		return path + ".lz4"
-	} else if compressionAlgorithm == "gzip" {
+	} else if compressionAlgorithm == "gzip" || compressionAlgorithm == "pgzip" {
 		return path + ".gz"
 	} else if compressionAlgorithm == "zstd" {
 		return path + ".zst"
