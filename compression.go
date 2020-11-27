@@ -89,7 +89,7 @@ func NewCompressionWriter(cacheArchivePath, compressor string, concurrency int) 
 		}, compressedOutputFile, nil
 	} else if compressor == "zstd" {
 		compressedOutputFile := createCompressedOutputFile(ExtendPathWithCompression(cacheArchivePath, compressor))
-		zstdWriter := zstd.NewWriter(compressedOutputFile)
+		zstdWriter := zstd.NewWriterLevel(compressedOutputFile, zstd.BestSpeed)
 		return  &CompressionWriter{
 			writer: zstdWriter,
 			closer: zstdWriter,
