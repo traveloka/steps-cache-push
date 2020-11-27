@@ -49,20 +49,9 @@ func logErrorfAndExit(format string, args ...interface{}) {
 func main() {
 	stepStartedAt := time.Now()
 
-	// configs, err := ParseConfig()
-	// if err != nil {
-	// 	logErrorfAndExit(err.Error())
-	// }
-
-	configs := &Config {
-		Paths: "igoat",
-		IgnoredPaths: "",
-		CacheAPIURL: "",
-		FingerprintMethodID: "file-mod-time",
-		UseFastArchiver: "true",
-		CompressArchive: "lz4",
-		DebugMode: true,
-		StackID: "asdb",
+	configs, err := ParseConfig()
+	if err != nil {
+		logErrorfAndExit(err.Error())
 	}
 
 	configs.Print()
