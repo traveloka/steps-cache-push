@@ -248,7 +248,7 @@ func main() {
 	    log.Infof("Uploading cache as artifact")
 
         // Split archive and add to deploy dir
-        err := Split("/Users/Vagrant/deploy/buck-cache.zip", "2g", cacheArchivePath)
+        err := Split("/Users/Vagrant/deploy/buck-cache.part", "2g", cacheArchivePath)
         if err != nil {
             logErrorfAndExit("Failed to split archive to deploy dir: %s", err)
         }
