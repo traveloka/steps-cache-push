@@ -189,11 +189,6 @@ func uploadArchive(pth, url string, deployCacheURL bool) error {
 		return fmt.Errorf("failed to generate upload url: %s", err)
 	}
 
-	err = StoreCacheURL(uploadURL)
-	if err != nil {
-	    return fmt.Errorf("failed to store upload url in artifact: %s", err)
-	}
-
 	if err := tryToUploadArchive(uploadURL, pth); err != nil {
 		fmt.Println()
 		log.Warnf("First upload attempt failed, retrying...")
