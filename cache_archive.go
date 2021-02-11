@@ -163,7 +163,7 @@ func (a *Archive) Close() error {
 // uploadArchive uploads the archive file to a given destination.
 // If the destination is a local file path (url has a file:// scheme) this function copies the cache archive file to the destination.
 // Otherwise destination should point to the Bitrise cache API server, in this case the function has builtin retry logic with 3s sleep.
-func uploadArchive(pth, url string) error {
+func uploadArchive(pth, url string, deployCacheURL bool) error {
 	if strings.HasPrefix(url, "file://") {
 		dst := strings.TrimPrefix(url, "file://")
 		dir := filepath.Dir(dst)
@@ -187,6 +187,11 @@ func uploadArchive(pth, url string) error {
 	uploadURL, err := getCacheUploadURL(url, sizeInBytes)
 	if err != nil {
 		return fmt.Errorf("failed to generate upload url: %s", err)
+	}
+
+	err = StoreCacheURL(uploadURL)
+	if err != nil {
+	    return fmt.Errorf("failed to store upload url in artifact: %s", err)
 	}
 
 	if err := tryToUploadArchive(uploadURL, pth); err != nil {
