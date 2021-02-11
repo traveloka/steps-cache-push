@@ -11,7 +11,7 @@ import (
 )
 
 // Zip and split into few parts based on the size.
-// Size can be 2g 20m. g mean gigabyte m mean megabyte
+// Size 20m. m mean megabyte
 func Split(name, size, cacheArchivePath string) error {
     startTime := time.Now()
 
