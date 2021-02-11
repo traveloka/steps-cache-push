@@ -15,6 +15,13 @@ import (
 func Split(name, size, cacheArchivePath string) error {
     startTime := time.Now()
 
+    fi, err := os.Stat(cacheArchivePath)
+	if err != nil {
+		return fmt.Errorf("failed to get file info (%s): %s", cacheArchivePath, err)
+	}
+	sizeInBytes := fi.Size()
+	log.Printf("Splitting archive with size: %d bytes / %f MB to %s", sizeInBytes, (float64(sizeInBytes) / 1024.0 / 1024.0), size)
+
     cmd := command.New("split", "-b", size, cacheArchivePath, name)
 
     cmd.SetStdout(os.Stdout)
