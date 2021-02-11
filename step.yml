@@ -169,6 +169,16 @@ inputs:
       value_options:
         - "true"
         - "false"
+  - deploy_as_artifact: "true"
+      opts:
+        title: "Deploy as artifact?"
+        summary: "If true it will compress, split and deploy to the build artifact instead of s3 cache."
+        description: |-
+          If true it will compress, split and deploy to the build artifact instead of s3 cache.
+        is_required: true
+        value_options:
+          - "true"
+          - "false"
   - compression_algorithm: "false"
     opts:
       title: "Compression Algorithm"

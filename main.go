@@ -244,14 +244,25 @@ func main() {
         log.Donef("Generating Archive (plus compress if any) Done in %s\n", time.Since(startTime))
 	}
 
-	// Upload cache archive
-	startTime = time.Now()
+	if configs.DeployAsArtifact == "true" {
+	    log.Infof("Uploading cache as artifact")
 
-	log.Infof("Uploading cache archive")
+        // Split archive and add to deploy dir
+        err := Split("/Users/Vagrant/deploy/buck-cache.zip", "2g", cacheArchivePath)
+        if err != nil {
+            logErrorfAndExit("Failed to split archive to deploy dir: %s", err)
+        }
+	} else {
+        // Upload cache archive
+    	startTime = time.Now()
 
-	if err := uploadArchive(ExtendPathWithCompression(cacheArchivePath, configs.CompressArchive), configs.CacheAPIURL); err != nil {
-		logErrorfAndExit("Failed to upload archive: %s", err)
+    	log.Infof("Uploading cache archive")
+
+    	if err := uploadArchive(ExtendPathWithCompression(cacheArchivePath, configs.CompressArchive), configs.CacheAPIURL); err != nil {
+    		logErrorfAndExit("Failed to upload archive: %s", err)
+    	}
+    	log.Donef("Done in %s\n", time.Since(startTime))
 	}
-	log.Donef("Done in %s\n", time.Since(startTime))
+
 	log.Donef("Total step time: %s", time.Since(stepStartedAt))
 }
